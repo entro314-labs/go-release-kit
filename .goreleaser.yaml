@@ -1,0 +1,368 @@
+# GoReleaser Configuration - Unified Template
+# Features: multi-platform builds, Homebrew/Winget/AUR/Docker/nfpms,
+#           SBOM generation, Cosign signing, conditional secret guards
+#
+# Placeholders: __PROJECT_NAME__, __PROJECT_DESCRIPTION__, __MAIN_PACKAGE__, __ORG__
+#
+# Documentation: https://goreleaser.com
+
+version: 2
+
+project_name: __PROJECT_NAME__
+
+# =============================================================================
+# Environment
+# =============================================================================
+env:
+  - GO111MODULE=on
+
+# =============================================================================
+# Before hooks - go test acts as a release gate
+# =============================================================================
+before:
+  hooks:
+    - go mod tidy
+    - go mod verify
+    - go test ./...
+
+# =============================================================================
+# Builds
+# =============================================================================
+builds:
+  - id: __PROJECT_NAME__
+    main: __MAIN_PACKAGE__
+    binary: __PROJECT_NAME__
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X main.builtBy=goreleaser
+    mod_timestamp: '{{ .CommitTimestamp }}'
+
+# =============================================================================
+# Universal binaries (macOS)
+# =============================================================================
+universal_binaries:
+  - id: __PROJECT_NAME__-universal
+    name_template: __PROJECT_NAME__
+    replace: true
+
+# =============================================================================
+# Archives
+# =============================================================================
+archives:
+  - id: default
+    formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- if eq .Os "darwin" }}macOS
+      {{- else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    files:
+      - LICENSE*
+      - README*
+      - CHANGELOG*
+
+# =============================================================================
+# Checksums
+# =============================================================================
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+# =============================================================================
+# Snapshots
+# =============================================================================
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+# =============================================================================
+# Changelog
+# =============================================================================
+changelog:
+  use: github
+  sort: asc
+  abbrev: 7
+  groups:
+    - title: "Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug Fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Documentation"
+      regexp: '^.*?docs?(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: "Performance & Refactors"
+      regexp: '^.*?(perf|refactor)(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: "Dependencies"
+      regexp: '^.*?(build|deps?)(\([[:word:]]+\))??!?:.+$'
+      order: 4
+    - title: "Other Changes"
+      order: 999
+  filters:
+    exclude:
+      - '^chore:'
+      - '^style:'
+      - '^test:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
+      - go mod tidy
+
+# =============================================================================
+# GitHub Release
+# =============================================================================
+release:
+  github:
+    owner: __ORG__
+    name: __PROJECT_NAME__
+  draft: false
+  prerelease: auto
+  mode: replace
+  header: |
+    ## __PROJECT_NAME__ {{ .Tag }}
+
+    **Release Date**: {{ .Date }}
+
+  footer: |
+    ---
+
+    ## Installation
+
+    ### Homebrew (macOS/Linux)
+    ```bash
+    brew install --cask __ORG__/homebrew-tap/__PROJECT_NAME__
+    ```
+
+    ### Winget (Windows)
+    ```powershell
+    winget install __ORG__.__PROJECT_NAME__
+    ```
+
+    ### AUR (Arch Linux)
+    ```bash
+    yay -S __PROJECT_NAME__-bin
+    ```
+
+    ### Go Install
+    ```bash
+    go install github.com/__ORG__/__PROJECT_NAME__@{{ .Tag }}
+    ```
+
+    ### Docker
+    ```bash
+    docker pull ghcr.io/__ORG__/__PROJECT_NAME__:{{ .Version }}
+    ```
+
+    ### Manual Installation
+    Download the appropriate binary for your platform from the assets below.
+
+    **Full Changelog**: https://github.com/__ORG__/__PROJECT_NAME__/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+# =============================================================================
+# Homebrew Cask
+# =============================================================================
+homebrew_casks:
+  - name: __PROJECT_NAME__
+    ids:
+      - default
+    repository:
+      owner: __ORG__
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Casks
+    homepage: https://github.com/__ORG__/__PROJECT_NAME__
+    description: "__PROJECT_DESCRIPTION__"
+    license: MIT
+    skip_upload: '{{ or .IsSnapshot (eq .Env.HOMEBREW_TAP_TOKEN "") }}'
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Homebrew Cask update for {{ .ProjectName }} version {{ .Tag }}"
+    binaries:
+      - __PROJECT_NAME__
+
+# =============================================================================
+# Winget (Windows Package Manager) - conditional on WINGET_TOKEN
+# =============================================================================
+winget:
+  - name: __PROJECT_NAME__
+    ids:
+      - default
+    package_identifier: __ORG__.__PROJECT_NAME__
+    publisher: __ORG__
+    publisher_url: https://github.com/__ORG__
+    publisher_support_url: https://github.com/__ORG__/__PROJECT_NAME__/issues
+    short_description: "__PROJECT_DESCRIPTION__"
+    description: "__PROJECT_DESCRIPTION__"
+    homepage: https://github.com/__ORG__/__PROJECT_NAME__
+    license: MIT
+    license_url: https://github.com/__ORG__/__PROJECT_NAME__/blob/main/LICENSE
+    skip_upload: '{{ or .IsSnapshot (eq .Env.WINGET_TOKEN "") }}'
+    repository:
+      owner: __ORG__
+      name: winget-pkgs
+      branch: "__PROJECT_NAME__-{{ .Version }}"
+      token: "{{ .Env.WINGET_TOKEN }}"
+      pull_request:
+        enabled: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
+    commit_msg_template: "{{ .PackageIdentifier }}: {{ .Tag }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+
+# =============================================================================
+# AUR (Arch User Repository) - conditional on AUR_KEY
+# =============================================================================
+aurs:
+  - name: __PROJECT_NAME__-bin
+    ids:
+      - default
+    homepage: https://github.com/__ORG__/__PROJECT_NAME__
+    description: "__PROJECT_DESCRIPTION__"
+    maintainers:
+      - "__ORG__"
+    license: MIT
+    disable: '{{ or .IsSnapshot (eq .Env.AUR_KEY "") }}'
+    private_key: "{{ .Env.AUR_KEY }}"
+    git_url: "ssh://aur@aur.archlinux.org/__PROJECT_NAME__-bin.git"
+    provides:
+      - __PROJECT_NAME__
+    conflicts:
+      - __PROJECT_NAME__
+    package: |-
+      install -Dm755 "./__PROJECT_NAME__" "${pkgdir}/usr/bin/__PROJECT_NAME__"
+      install -Dm644 "./LICENSE" "${pkgdir}/usr/share/licenses/__PROJECT_NAME__/LICENSE"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+
+# =============================================================================
+# Linux packages (deb/rpm/apk)
+# =============================================================================
+nfpms:
+  - id: packages
+    package_name: __PROJECT_NAME__
+    file_name_template: "{{ .ConventionalFileName }}"
+    homepage: https://github.com/__ORG__/__PROJECT_NAME__
+    description: "__PROJECT_DESCRIPTION__"
+    maintainer: "__ORG__"
+    license: MIT
+    vendor: __ORG__
+    formats:
+      - deb
+      - rpm
+      - apk
+    bindir: /usr/bin
+
+# =============================================================================
+# Docker
+# =============================================================================
+dockers_v2:
+  - ids:
+      - __PROJECT_NAME__
+    dockerfile: Dockerfile.goreleaser
+
+    images:
+      - "ghcr.io/__ORG__/__PROJECT_NAME__"
+
+    tags:
+      - "{{ .Version }}"
+      - "latest"
+      - "{{ .Version }}-amd64"
+      - "{{ .Version }}-arm64"
+
+    platforms:
+      - linux/amd64
+      - linux/arm64
+
+    disable: "{{ .IsSnapshot }}"
+
+    flags:
+      - "--pull"
+
+    labels:
+      "org.opencontainers.image.created": "{{.Date}}"
+      "org.opencontainers.image.title": "{{.ProjectName}}"
+      "org.opencontainers.image.revision": "{{.FullCommit}}"
+      "org.opencontainers.image.version": "{{.Version}}"
+      "org.opencontainers.image.source": "https://github.com/__ORG__/__PROJECT_NAME__"
+
+# =============================================================================
+# Docker Signing (Cosign)
+# =============================================================================
+docker_signs:
+  - artifacts: all
+    stdin: "{{ .Env.COSIGN_PWD }}"
+
+# =============================================================================
+# SBOM (Software Bill of Materials)
+# =============================================================================
+sboms:
+  - id: archive
+    artifacts: archive
+    documents:
+      - "${artifact}.spdx.json"
+  - id: source
+    artifacts: source
+    documents:
+      - "${artifact}.spdx.json"
+
+# =============================================================================
+# Artifact Signing (Cosign)
+# =============================================================================
+signs:
+  - id: checksum-sign
+    artifacts: checksum
+    stdin: "{{ .Env.COSIGN_PWD }}"
+  - id: artifacts-sign
+    artifacts: all
+    stdin: "{{ .Env.COSIGN_PWD }}"
+
+# =============================================================================
+# Source archive
+# =============================================================================
+source:
+  enabled: true
+  name_template: "{{ .ProjectName }}_{{ .Version }}_source"
+  format: tar.gz
+
+# =============================================================================
+# Metadata
+# =============================================================================
+metadata:
+  mod_timestamp: '{{ .CommitTimestamp }}'
+
+# =============================================================================
+# Announcements - skip for patch releases
+# =============================================================================
+announce:
+  skip: "{{gt .Patch 0}}"

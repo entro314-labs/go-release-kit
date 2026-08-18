@@ -1,0 +1,5 @@
+{
+  "versionFile": null,
+  "publish": null,
+  "steps": ["changelog", "tag", "push"]
+}
