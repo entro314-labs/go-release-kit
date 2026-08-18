@@ -2,7 +2,6 @@
 
 A drop-in release pipeline for Go CLI projects: GoReleaser v2, six distribution channels, Cosign signing, SBOMs, and GitHub Actions CI — as a set of template files you copy into your repo and fill in.
 
-Merges the release setups battle-tested across cool-kit, devkill, and git-herd into one maintained template.
 
 ## Features
 
