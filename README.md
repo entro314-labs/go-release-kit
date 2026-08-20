@@ -1,14 +1,14 @@
 # go-release-kit
 
-A drop-in release pipeline for Go CLI projects: GoReleaser v2, six distribution channels, Cosign signing, SBOMs, and GitHub Actions CI — as a set of template files you copy into your repo and fill in.
+A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distribution channels, Cosign signing, SBOMs, and GitHub Actions CI — as a set of template files you copy into your repo and fill in.
 
 
 ## Features
 
-- **6 distribution channels**: GitHub Releases, Homebrew Cask, Winget, AUR, Docker (GHCR), nfpms (deb/rpm/apk)
+- **8 distribution channels**: GitHub Releases, Homebrew Cask, Scoop, Winget, AUR, npm, Docker (GHCR), nfpms (deb/rpm/apk)
 - **Cosign signing**: checksums, all artifacts, Docker images
 - **SBOM**: SPDX JSON for archives and source
-- **Conditional secret guards**: Homebrew/Winget/AUR gracefully skip if secrets are absent
+- **Conditional secret guards**: Homebrew/Scoop/Winget/AUR/npm gracefully skip if secrets are absent
 - **Post-release verification**: `go install` + `docker pull` after release
 - **Snapshot builds in CI**: every PR validates the full release pipeline
 - **Conventional commits**: enforced by pre-commit hook, drives changelog groups
@@ -21,6 +21,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, six distribution 
 | File | Purpose |
 |---|---|
 | `.goreleaser.yaml` | GoReleaser v2 config with all distribution channels |
+| `npm/` | `npm i -g` distribution: a launcher plus a staging script driven by `dist/artifacts.json` ([details](npm/README.md)) |
 | `.github/workflows/ci.yml` | CI: test, lint, security, build, goreleaser check, docker |
 | `.github/workflows/release.yml` | Release: tag-triggered with Cosign signing + post-release verify |
 | `Makefile` | Local dev: build, test, lint, release, PGO, universal binary |
@@ -40,7 +41,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, six distribution 
    cd go-release-kit
    cp -R .goreleaser.yaml .github .golangci.yml .yamllint.yaml \
          .pre-commit-config.yaml Makefile Dockerfile.goreleaser \
-         SECURITY.md release.config.json /path/to/your-project/
+         SECURITY.md release.config.json npm /path/to/your-project/
    ```
 
 2. Replace the placeholders in every copied file:
@@ -92,6 +93,8 @@ func buildVersion() string {
 |---|---|---|
 | `GITHUB_TOKEN` | Auto | GitHub release, GHCR push |
 | `HOMEBREW_TAP_TOKEN` | Optional | PAT for homebrew-tap repo write |
+| `SCOOP_TAP_TOKEN` | Optional | PAT for scoop-bucket repo write |
+| `NPM_TOKEN` | Optional | npm **automation** token, for `npm i -g` distribution |
 | `WINGET_TOKEN` | Optional | PAT for winget-pkgs fork/PR |
 | `AUR_KEY` | Optional | SSH private key for AUR git push |
 | `COSIGN_PWD` | Optional | Cosign keystore password |

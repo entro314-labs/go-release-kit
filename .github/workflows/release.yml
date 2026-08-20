@@ -30,6 +30,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # Mapped here, not on the steps that use it: `if: env.X != ''` is evaluated
+    # before a step's own `env:` exists, so a step-level mapping never sees it.
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       - name: Checkout
@@ -92,9 +96,40 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          SCOOP_TAP_TOKEN: ${{ secrets.SCOOP_TAP_TOKEN }}
           WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
           AUR_KEY: ${{ secrets.AUR_KEY }}
           COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
+
+      # ---------------------------------------------------------------------
+      # npm distribution - conditional on NPM_TOKEN
+      #
+      # Runs here rather than in its own job because it needs dist/, which only
+      # exists in this runner. Skips with a warning when the secret is absent,
+      # like every other optional channel.
+      # ---------------------------------------------------------------------
+      - name: Set up Node
+        if: env.NPM_TOKEN != ''
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish to npm
+        if: env.NPM_TOKEN != ''
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          node npm/prepare.mjs "$TAG"
+          cd npm
+          # --provenance ties the tarball to this workflow run. It needs the
+          # id-token: write permission declared on this job.
+          npm publish --provenance --access public
+
+      - name: Note the skipped npm publish
+        if: env.NPM_TOKEN == ''
+        run: echo "::warning::NPM_TOKEN is not set - skipping the npm publish"
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v7

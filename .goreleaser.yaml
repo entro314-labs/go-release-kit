@@ -207,6 +207,40 @@ homebrew_casks:
       - __PROJECT_NAME__
 
 # =============================================================================
+# Scoop (Windows) - conditional on SCOOP_TAP_TOKEN
+#
+# The other half of Windows. Winget is the system package manager and reaches
+# everyone; Scoop is what developers on Windows actually have, installs without
+# a UAC prompt, and updates with `scoop update`. A submission to winget-pkgs is
+# a pull request against a Microsoft repo that a human reviews; a Scoop manifest
+# is a commit to your own bucket and lands immediately — so the two are worth
+# having together, not as alternatives.
+#
+# Needs a bucket repository named `scoop-bucket` under __ORG__ (any public repo
+# with a `bucket/` directory is a valid Scoop bucket). Users then run:
+#   scoop bucket add __ORG__ https://github.com/__ORG__/scoop-bucket
+#   scoop install __PROJECT_NAME__
+# =============================================================================
+scoops:
+  - name: __PROJECT_NAME__
+    ids:
+      - default
+    repository:
+      owner: __ORG__
+      name: scoop-bucket
+      branch: main
+      token: "{{ .Env.SCOOP_TAP_TOKEN }}"
+    directory: bucket
+    homepage: https://github.com/__ORG__/__PROJECT_NAME__
+    description: "__PROJECT_DESCRIPTION__"
+    license: MIT
+    skip_upload: '{{ or .IsSnapshot (eq .Env.SCOOP_TAP_TOKEN "") }}'
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "Scoop update for {{ .ProjectName }} version {{ .Tag }}"
+
+# =============================================================================
 # Winget (Windows Package Manager) - conditional on WINGET_TOKEN
 # =============================================================================
 winget:
