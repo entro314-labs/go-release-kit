@@ -1,5 +1,10 @@
 {
   "versionFile": null,
   "publish": null,
-  "steps": ["changelog", "tag", "push"]
+  "steps": [
+    "commit",
+    "changelog",
+    "tag",
+    "push"
+  ]
 }
