@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-08-24
+
 ### Added
 
 - Initial release of the template kit: GoReleaser v2 config with six distribution channels (GitHub Releases, Homebrew Cask, Winget, AUR, Docker/GHCR, nfpms), Cosign signing, and SPDX SBOMs
@@ -16,3 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-commit hooks with conventional commit enforcement, and a CI `commit-lint` job running the same hook against the pull request title — the one subject no local hook sees, and the one a squash merge turns into the commit the changelog is grouped from
 - golangci-lint and yamllint configs, runtime-only GoReleaser Dockerfile, security policy template
 - Project documentation: README, LICENSE (MIT), CONTRIBUTING, CODE_OF_CONDUCT
+
+[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/entro314-labs/go-release-kit/releases/tag/v1.0.0
