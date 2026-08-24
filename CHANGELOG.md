@@ -13,6 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI workflow: cross-platform tests, golangci-lint, security scanning, build verification, GoReleaser snapshot on every PR
 - Release workflow: tag-triggered with Cosign signing and post-release `go install` + `docker pull` verification
 - Makefile with cross-platform builds, PGO support, macOS universal binary, and GOARM64 optimizations
-- Pre-commit hooks with conventional commit enforcement
+- Pre-commit hooks with conventional commit enforcement, and a CI `commit-lint` job running the same hook against the pull request title — the one subject no local hook sees, and the one a squash merge turns into the commit the changelog is grouped from
 - golangci-lint and yamllint configs, runtime-only GoReleaser Dockerfile, security policy template
 - Project documentation: README, LICENSE (MIT), CONTRIBUTING, CODE_OF_CONDUCT

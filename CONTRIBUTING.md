@@ -35,6 +35,11 @@ fix: correct winget PR branch template
 docs: clarify AUR_KEY format
 ```
 
+The `conventional-pre-commit` hook checks these locally, and the CI workflow's
+`commit-lint` job runs the same hook against the pull request title. That title
+is what a squash merge turns into the commit GoReleaser groups into the
+changelog, and no local hook ever sees it.
+
 ## Reporting issues
 
 Open a GitHub issue with the file involved, what you expected, and what happened — ideally with the GoReleaser or Actions log excerpt. For security issues, follow [SECURITY.md](SECURITY.md) instead of opening a public issue.

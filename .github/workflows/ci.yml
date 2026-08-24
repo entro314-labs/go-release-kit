@@ -16,7 +16,7 @@ permissions:
   security-events: write
 
 env:
-  GO_VERSION: "1.26.6"
+  GO_VERSION: "1.27.0"
 
 jobs:
   test:
@@ -54,6 +54,49 @@ jobs:
           files: ./coverage.out
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+
+  # The commit-msg hook in .pre-commit-config.yaml runs on developer machines, where it can
+  # be bypassed with --no-verify and never sees the one subject that matters most: a squash
+  # merge takes its subject from the pull request title, and that title is what GoReleaser
+  # groups into the changelog. This job runs the very same hook, with the same args, so
+  # there is one definition of a valid subject rather than two that can drift.
+  commit-lint:
+    name: Commit Lint
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # the branch range below needs both endpoints
+
+      - name: Install pre-commit
+        run: pipx install pre-commit
+
+      # Titles and subjects reach the shell through env and a file, never through ${{ }}
+      # interpolation: both are attacker-controlled text on a fork's pull request.
+      - name: Lint the pull request title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          printf '%s\n' "$TITLE" > "$RUNNER_TEMP/subject.txt"
+          pre-commit run conventional-pre-commit \
+            --hook-stage commit-msg \
+            --commit-msg-filename "$RUNNER_TEMP/subject.txt"
+
+      - name: Lint the commits on the branch
+        env:
+          RANGE: ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          while IFS= read -r subject; do
+            printf '%s\n' "$subject" > "$RUNNER_TEMP/subject.txt"
+            pre-commit run conventional-pre-commit \
+              --hook-stage commit-msg \
+              --commit-msg-filename "$RUNNER_TEMP/subject.txt" || status=1
+          done < <(git log --no-merges --format=%s "$RANGE")
+          exit "$status"
 
   lint:
     name: Lint
