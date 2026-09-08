@@ -1,19 +1,33 @@
-FROM debian:trixie-slim
+# syntax=docker/dockerfile:1
+# Runtime-only image for GoReleaser's dockers_v2 target: the binary is already
+# built by the `builds:` section, so there is nothing to compile here.
+#
+# distroless/static matches the kit's CGO_ENABLED=0 builds — no libc to link
+# against, ~2 MB, ships ca-certificates and zoneinfo, and carries no shell or
+# package manager for an attacker to reach. Debian 13 (trixie), same base
+# generation as the rest of the kit.
+#
+# If your tool execs another binary at run time (git, ssh) or you want a shell
+# for debugging, swap this for `debian:trixie-slim` and add:
+#   RUN apt-get update && apt-get install -y --no-install-recommends \
+#         ca-certificates git tzdata && rm -rf /var/lib/apt/lists/*
+#   RUN groupadd -g 65532 app && useradd -r -u 65532 -g app app
+#
+# Pinned by tag, not digest: this is a template, and a digest baked in here
+# goes stale on the shelf. `dockers_v2.flags: ["--pull"]` re-resolves the tag
+# on every release build.
+FROM gcr.io/distroless/static-debian13:nonroot
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    git \
-    tzdata \
-    && rm -rf /var/lib/apt/lists/*
+# OCI labels come from `dockers_v2.labels` in .goreleaser.yaml, which has the
+# version/commit/date values; repeating them here would only conflict.
 
-RUN groupadd -r app && useradd -r -g app app
-
-# GoReleaser v2 places binaries in subdirectories matching the target platform
+# GoReleaser v2 places binaries in subdirectories matching the target platform.
 ARG TARGETPLATFORM
-COPY ${TARGETPLATFORM}/__PROJECT_NAME__ /usr/local/bin/__PROJECT_NAME__
-RUN chmod +x /usr/local/bin/__PROJECT_NAME__
+COPY --chmod=0755 ${TARGETPLATFORM}/__PROJECT_NAME__ /usr/local/bin/__PROJECT_NAME__
 
-USER app
+# Numeric, not `nonroot`: Kubernetes runAsNonRoot and compose `user:` can only
+# verify an id. 65532 is distroless's nonroot user.
+USER 65532:65532
 WORKDIR /workspace
 
 ENTRYPOINT ["/usr/local/bin/__PROJECT_NAME__"]
