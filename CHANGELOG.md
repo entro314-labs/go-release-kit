@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `Dockerfile.goreleaser` now builds on `gcr.io/distroless/static-debian13:nonroot` instead of `debian:trixie-slim`, matching the kit's `CGO_ENABLED=0` builds: 67 MiB down to 1.5 MiB, and no shell or package manager in the shipped image. The `git` package went with it — nothing in the kit needed it at run time. A tool that execs `git`/`ssh`, or anyone who wants a debug shell, has the `debian:trixie-slim` recipe in a comment at the top of the file. The `chmod +x` and `groupadd`/`useradd` layers are gone too: `COPY --chmod=0755` and a numeric `USER 65532:65532` (which is what Kubernetes `runAsNonRoot` and compose `user:` can actually verify) do the same work without a layer.
+
 ### Fixed
 
 - Signing never worked in any mode: `signs` ran goreleaser's default `gpg` (no key on the runner), `docker_signs` looked for a `cosign.key` nothing provides, and both read `COSIGN_PWD` without a guard so every snapshot failed before signing began. Signing is now keyless cosign over the workflow's OIDC identity; `COSIGN_PWD` is gone, snapshot runs pass `--skip=sign`, and `SECURITY.md` shows the matching `verify-blob` command.
