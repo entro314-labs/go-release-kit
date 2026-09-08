@@ -5,7 +5,7 @@
 # distroless/static matches the kit's CGO_ENABLED=0 builds — no libc to link
 # against, ~2 MB, ships ca-certificates and zoneinfo, and carries no shell or
 # package manager for an attacker to reach. Debian 13 (trixie), same base
-# generation as the rest of the kit.
+# generation as the debian:trixie-slim base it replaces.
 #
 # If your tool execs another binary at run time (git, ssh) or you want a shell
 # for debugging, swap this for `debian:trixie-slim` and add:
