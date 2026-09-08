@@ -112,7 +112,9 @@ make tag                             # infer the bump, roll CHANGELOG.md, commit
 It reads the conventional commits since the last tag — `feat:` is a minor, `fix:` a patch,
 `!` or a `BREAKING CHANGE:` footer a major — and prints what it inferred and why before doing
 anything. A Go module has no version file, so `release.config.json` sets `versionFile: null`
-and the version is read from the latest tag.
+and the version is read from the latest tag. The very first release therefore has no tag
+to count from: pass it explicitly once (`release-kit 0.1.0`), and `make tag` infers every
+release after it.
 
 `make tag` stops at the pushed tag on purpose. Everything after it — building six
 distribution channels, Cosign signing, the GitHub release — is this pipeline's job, which is

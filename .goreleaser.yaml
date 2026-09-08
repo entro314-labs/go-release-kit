@@ -21,7 +21,8 @@ env:
 # =============================================================================
 before:
   hooks:
-    - go mod tidy
+    # No `go mod tidy` here: it runs after goreleaser's dirty-tree check, so a
+    # release could build from a go.mod that differs from the tagged one.
     - go mod verify
     - go test ./...
 

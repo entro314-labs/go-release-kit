@@ -73,12 +73,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       - name: Verify buildx setup
-        env:
-          BUILDER_NAME: ${{ steps.buildx.outputs.name }}
-        run: |
-          docker buildx ls
-          docker run --privileged --rm tonistiigi/binfmt --install all
-          echo "BUILDER_NAME=${BUILDER_NAME}" >> $GITHUB_ENV
+        run: docker buildx ls
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
@@ -188,6 +183,7 @@ jobs:
           TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           VERSION="${TAG#v}"
-          docker pull "ghcr.io/${REPO}:${VERSION}"
-          docker run --rm "ghcr.io/${REPO}:${VERSION}" --version
-        continue-on-error: true
+          # GHCR image names are lowercase; github.repository keeps the org's case.
+          IMAGE="ghcr.io/${REPO,,}:${VERSION}"
+          docker pull "$IMAGE"
+          docker run --rm "$IMAGE" --version
