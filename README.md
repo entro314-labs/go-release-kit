@@ -22,7 +22,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
 |---|---|
 | `.goreleaser.yaml` | GoReleaser v2 config with all distribution channels |
 | `npm/` | `npm i -g` distribution: a launcher plus a staging script driven by `dist/artifacts.json` ([details](npm/README.md)) |
-| `.github/workflows/ci.yml` | CI: test, lint, security, build, goreleaser check, docker |
+| `.github/workflows/ci.yml` | CI: test, lint, security, build, goreleaser check |
 | `.github/workflows/release.yml` | Release: tag-triggered with Cosign signing + post-release verify |
 | `Makefile` | Local dev: build, test, lint, release, PGO, universal binary |
 | `.pre-commit-config.yaml` | Pre-commit hooks + conventional commit enforcement |
@@ -51,7 +51,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
    | `__PROJECT_NAME__` | Binary/project name | `git-herd` |
    | `__PROJECT_DESCRIPTION__` | One-line description | `A concurrent Git repository management tool` |
    | `__MAIN_PACKAGE__` | Go main package path | `.` or `./cmd/git-herd` |
-   | `__MAIN_PACKAGE_SUFFIX__` | Path after module for `go install` | `` (empty for root) or `cmd/git-herd` |
+   | `__MAIN_PACKAGE_SUFFIX__` | Path after module for `go install`, with its leading slash | `` (empty for root) or `/cmd/git-herd` |
    | `__ORG__` | GitHub org/user | `entro314-labs` |
 
    One-liner (run from your project root, adjust values first):
@@ -97,7 +97,6 @@ func buildVersion() string {
 | `NPM_TOKEN` | Optional | npm **automation** token, for `npm i -g` distribution |
 | `WINGET_TOKEN` | Optional | PAT for winget-pkgs fork/PR |
 | `AUR_KEY` | Optional | SSH private key for AUR git push |
-| `COSIGN_PWD` | Optional | Cosign keystore password |
 | `CODECOV_TOKEN` | Optional | Coverage upload |
 
 ## Cutting a release
@@ -125,15 +124,19 @@ By default **GoReleaser does**, from its `changelog.groups` config in `.goreleas
 and nothing needs to change. release-kit maintains `CHANGELOG.md` in the repository, which
 is a different artefact for a different reader.
 
-If you would rather they be the same text, have release-kit write the notes and GoReleaser
-consume them:
-
-```json
-{ "notesFile": "dist-notes.md" }
-```
+If you would rather they be the same text, read them off the tag: release-kit writes the
+notes into the annotated tag, which is the one thing that reaches the workflow's fresh
+checkout (a `notesFile` is written locally after the release commit and never leaves the
+machine). A signed tag appends its signature block, so that is stripped first:
 
 ```yaml
-args: release --clean --release-notes=dist-notes.md
+- name: Read the release notes off the tag
+  run: |
+    git tag -l --format='%(contents)' "$GITHUB_REF_NAME" \
+      | sed '/^-----BEGIN [A-Z ]*SIGNATURE-----$/,$d' > dist-notes.md
+- uses: goreleaser/goreleaser-action@v7
+  with:
+    args: release --clean --release-notes=dist-notes.md
 ```
 
 `--release-notes` makes GoReleaser skip its own changelog generation. Do not do half of

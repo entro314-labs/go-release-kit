@@ -59,8 +59,12 @@ Please include the following information in your report:
 # Verify checksums
 sha256sum -c checksums.txt
 
-# Verify Cosign signatures (when cosign is configured)
-cosign verify-blob --signature checksums.txt.sig checksums.txt
+# Verify the keyless Cosign signature: the certificate names the workflow that signed
+cosign verify-blob \
+  --certificate checksums.txt.pem --signature checksums.txt.sig \
+  --certificate-identity-regexp '^https://github.com/__ORG__/__PROJECT_NAME__/' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  checksums.txt
 ```
 
 ## Dependencies

@@ -6,7 +6,7 @@ Thanks for your interest in improving this template. Contributions of all kinds 
 
 - **Keep the placeholders.** Files in this repo are templates. Tokens like `__PROJECT_NAME__`, `__ORG__`, and `__MAIN_PACKAGE__` are intentional and must survive your change. Never submit a PR with them replaced by real values.
 - **Stay drop-in.** A change should work for any Go CLI project that follows the documented conventions (version variables in `main`, conventional commits, tag-triggered releases). Project-specific behavior belongs behind a documented placeholder or an optional secret guard.
-- **Degrade gracefully.** Optional channels (Homebrew, Winget, AUR, Cosign) must skip cleanly when their secret is absent, matching the existing `skip_upload`/`disable` guard pattern.
+- **Degrade gracefully.** Optional channels (Homebrew, Winget, AUR, npm) must skip cleanly when their secret is absent, matching the existing `skip_upload`/`disable` guard pattern. Cosign is keyless and has no secret; snapshot runs pass `--skip=sign` instead.
 
 ## Making changes
 

@@ -56,6 +56,10 @@ builds:
 # =============================================================================
 universal_binaries:
   - id: __PROJECT_NAME__-universal
+    # Without `ids`, goreleaser looks for a *build* named after this entry's own id,
+    # finds none, and silently ships two per-arch darwin archives instead.
+    ids:
+      - __PROJECT_NAME__
     name_template: __PROJECT_NAME__
     replace: true
 
@@ -124,10 +128,12 @@ changelog:
       order: 999
   filters:
     exclude:
-      - '^chore:'
-      - '^style:'
-      - '^test:'
-      - '^ci:'
+      # Scoped forms too: release-kit's own `chore(release): vX` commit otherwise
+      # appears under Other Changes in every release.
+      - '^chore(\(.*\))?:'
+      - '^style(\(.*\))?:'
+      - '^test(\(.*\))?:'
+      - '^ci(\(.*\))?:'
       - Merge pull request
       - Merge branch
       - go mod tidy
@@ -169,7 +175,7 @@ release:
 
     ### Go Install
     ```bash
-    go install github.com/__ORG__/__PROJECT_NAME__@{{ .Tag }}
+    go install github.com/__ORG__/__PROJECT_NAME____MAIN_PACKAGE_SUFFIX__@{{ .Tag }}
     ```
 
     ### Docker
@@ -198,7 +204,8 @@ homebrew_casks:
     homepage: https://github.com/__ORG__/__PROJECT_NAME__
     description: "__PROJECT_DESCRIPTION__"
     license: MIT
-    skip_upload: '{{ or .IsSnapshot (eq .Env.HOMEBREW_TAP_TOKEN "") }}'
+    # A prerelease must not become what `brew install` gives everyone.
+    skip_upload: '{{ or .IsSnapshot .Prerelease (eq .Env.HOMEBREW_TAP_TOKEN "") }}'
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
@@ -234,7 +241,7 @@ scoops:
     homepage: https://github.com/__ORG__/__PROJECT_NAME__
     description: "__PROJECT_DESCRIPTION__"
     license: MIT
-    skip_upload: '{{ or .IsSnapshot (eq .Env.SCOOP_TAP_TOKEN "") }}'
+    skip_upload: '{{ or .IsSnapshot .Prerelease (eq .Env.SCOOP_TAP_TOKEN "") }}'
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
@@ -256,7 +263,7 @@ winget:
     homepage: https://github.com/__ORG__/__PROJECT_NAME__
     license: MIT
     license_url: https://github.com/__ORG__/__PROJECT_NAME__/blob/main/LICENSE
-    skip_upload: '{{ or .IsSnapshot (eq .Env.WINGET_TOKEN "") }}'
+    skip_upload: '{{ or .IsSnapshot .Prerelease (eq .Env.WINGET_TOKEN "") }}'
     repository:
       owner: __ORG__
       name: winget-pkgs
@@ -285,7 +292,7 @@ aurs:
     maintainers:
       - "__ORG__"
     license: MIT
-    disable: '{{ or .IsSnapshot (eq .Env.AUR_KEY "") }}'
+    disable: '{{ or .IsSnapshot .Prerelease (eq .Env.AUR_KEY "") }}'
     private_key: "{{ .Env.AUR_KEY }}"
     git_url: "ssh://aur@aur.archlinux.org/__PROJECT_NAME__-bin.git"
     provides:
@@ -330,7 +337,9 @@ dockers_v2:
 
     tags:
       - "{{ .Version }}"
-      - "latest"
+      # Empty tags are dropped: a prerelease keeps its version tag and leaves
+      # `latest` pointing at the last stable image.
+      - "{{ if not .Prerelease }}latest{{ end }}"
       - "{{ .Version }}-amd64"
       - "{{ .Version }}-arm64"
 
@@ -353,9 +362,16 @@ dockers_v2:
 # =============================================================================
 # Docker Signing (Cosign)
 # =============================================================================
+# Keyless: the workflow's `id-token: write` mints the identity, cosign records the
+# signature in Rekor, and no key or password exists to be leaked or lost. A snapshot
+# run has no OIDC identity, so ci.yml and `make release-snapshot` pass --skip=sign.
 docker_signs:
-  - artifacts: all
-    stdin: "{{ .Env.COSIGN_PWD }}"
+  - cmd: cosign
+    artifacts: all
+    args:
+      - sign
+      - "${artifact}@${digest}"
+      - --yes
 
 # =============================================================================
 # SBOM (Software Bill of Materials)
@@ -374,12 +390,19 @@ sboms:
 # Artifact Signing (Cosign)
 # =============================================================================
 signs:
-  - id: checksum-sign
-    artifacts: checksum
-    stdin: "{{ .Env.COSIGN_PWD }}"
-  - id: artifacts-sign
+  - id: cosign
+    cmd: cosign
+    # `all` already covers checksums.txt; a second entry for it produced the same
+    # checksums.txt.sig twice.
     artifacts: all
-    stdin: "{{ .Env.COSIGN_PWD }}"
+    certificate: "${artifact}.pem"
+    signature: "${artifact}.sig"
+    args:
+      - sign-blob
+      - "--output-certificate=${certificate}"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - --yes
 
 # =============================================================================
 # Source archive

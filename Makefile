@@ -182,26 +182,17 @@ run: build
 	./$(BINARY_NAME) --help
 
 # =============================================================================
-# Docker
-# =============================================================================
-.PHONY: docker-build
-docker-build:
-	docker build -t $(BINARY_NAME):$(VERSION) -t $(BINARY_NAME):latest .
-
-.PHONY: docker-run
-docker-run:
-	docker run --rm $(BINARY_NAME):latest --help
-
-# =============================================================================
 # Release (GoReleaser)
 # =============================================================================
 .PHONY: release-check
 release-check:
 	goreleaser check
 
+# --skip=sign: signing is keyless cosign, which needs the OIDC identity only the
+# release workflow has.
 .PHONY: release-snapshot
 release-snapshot:
-	goreleaser release --snapshot --clean
+	goreleaser release --snapshot --clean --skip=sign
 
 .PHONY: release
 release:
@@ -233,7 +224,7 @@ clean:
 .PHONY: install-tools
 install-tools:
 	@echo "Installing development tools..."
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/goreleaser/goreleaser/v2@latest
 	@echo "Development tools installed"
