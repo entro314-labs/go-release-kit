@@ -200,7 +200,7 @@ release:
 
 # Cut the next version: infer the bump from the conventional commits since the last tag,
 # update CHANGELOG.md, commit, tag and push. Pushing the tag is what triggers
-# .github/workflows/release.yml, which runs goreleaser.
+# .github/workflows/release.yml (copied from templates/.github/), which runs goreleaser.
 #   npm i -g @entro314labs/release-kit
 .PHONY: tag
 tag:

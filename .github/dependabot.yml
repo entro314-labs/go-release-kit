@@ -3,7 +3,8 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    # "/" is the kit's own lint workflow; "/templates" holds the workflows consumers copy.
+    directories: [/, /templates]
     schedule:
       interval: weekly
     cooldown:

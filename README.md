@@ -23,9 +23,9 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
 |---|---|
 | `.goreleaser.yaml` | GoReleaser v2 config with all distribution channels |
 | `npm/` | `npm i -g` distribution: a launcher plus a staging script driven by `dist/artifacts.json` ([details](npm/README.md)) |
-| `.github/workflows/ci.yml` | CI: test, lint, security, build, goreleaser check |
-| `.github/workflows/release.yml` | Release: tag-triggered with Cosign signing + post-release verify |
-| `.github/workflows/lint.yml`, `.github/dependabot.yml` | The kit's own CI, not templates: actionlint + zizmor over the workflows, weekly action-pin updates |
+| `templates/.github/workflows/ci.yml` | CI: test, lint, security, build, goreleaser check |
+| `templates/.github/workflows/release.yml` | Release: tag-triggered with Cosign signing + post-release verify |
+| `.github/workflows/lint.yml`, `.github/dependabot.yml` | The kit's own CI, not templates: actionlint + zizmor over the templates, weekly action-pin updates |
 | `Makefile` | Local dev: build, test, lint, release, PGO, universal binary |
 | `.pre-commit-config.yaml` | Pre-commit hooks + conventional commit enforcement |
 | `.golangci.yml` | Linter config (errcheck, govet, staticcheck, unused) |
@@ -41,18 +41,17 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
    ```sh
    git clone https://github.com/entro314-labs/go-release-kit
    cd go-release-kit
-   mkdir -p /path/to/your-project/.github/workflows
-   cp .github/workflows/ci.yml .github/workflows/release.yml \
-      /path/to/your-project/.github/workflows/
+   cp -R templates/.github /path/to/your-project/
    cp -R .goreleaser.yaml .golangci.yml .yamllint.yaml \
          .pre-commit-config.yaml Makefile Dockerfile.goreleaser \
          SECURITY.md release.config.json npm /path/to/your-project/
    ```
 
-   Only the two workflows are templates. `.github/workflows/lint.yml` and
-   `.github/dependabot.yml` are the kit's own CI (actionlint + zizmor over the
-   templates, and Dependabot for their action pins); copy them only if you want
-   the same checks on your repository.
+   The workflow templates live under `templates/.github/` rather than `.github/` so
+   that they never run in this repository, which has no Go module to test and must
+   not start goreleaser when the kit itself is tagged. `.github/` holds only the
+   kit's own CI (actionlint + zizmor over the templates, and Dependabot for their
+   action pins).
 
 2. Replace the placeholders in every copied file:
 

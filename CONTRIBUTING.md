@@ -17,7 +17,7 @@ Thanks for your interest in improving this template. Contributions of all kinds 
    ```sh
    yamllint -c .yamllint.yaml .          # YAML files
    goreleaser check                       # .goreleaser.yaml (expect placeholder-related warnings only)
-   actionlint                             # workflows, if you have it installed
+   actionlint .github/workflows/*.yml templates/.github/workflows/*.yml  # if installed
    pre-commit run --all-files             # everything the hooks cover
    ```
 

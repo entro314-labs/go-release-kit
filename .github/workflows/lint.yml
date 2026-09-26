@@ -19,11 +19,17 @@ jobs:
         with:
           persist-credentials: false
 
-      # Type-checks expressions and runs shellcheck over every `run:` block.
+      # Type-checks expressions and runs shellcheck over every `run:` block. The templates
+      # live outside .github/workflows so they never run in this repository, which means
+      # actionlint has to be handed them by name: list any new template here.
       - name: actionlint
         uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 # 1.7.12
         with:
-          args: -color
+          args: >-
+            -color
+            .github/workflows/lint.yml
+            templates/.github/workflows/ci.yml
+            templates/.github/workflows/release.yml
 
       # Security audit. Accepted findings live in .github/zizmor.yml, each with its reason.
       - name: zizmor
