@@ -32,6 +32,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # GitHub's default is six hours. A normal run is well under half an hour; this
+    # only stops a hung QEMU build or registry push from holding the runner.
+    timeout-minutes: 60
     permissions:
       contents: write  # create the GitHub release and upload its assets
       packages: write  # push the image to GHCR
@@ -163,6 +166,7 @@ jobs:
     name: Verify Release
     needs: release
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Wait for release propagation
