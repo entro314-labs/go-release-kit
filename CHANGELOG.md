@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-26
+
 ### Added
 
 - The GHCR image also gets a floating `major.minor` tag (`:1.4`), for pinning a release line while still taking its patches. Like `latest`, it is skipped on prereleases, so `v1.5.0-beta.1` never moves `:1.5`.
@@ -53,5 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - golangci-lint and yamllint configs, runtime-only GoReleaser Dockerfile, security policy template
 - Project documentation: README, LICENSE (MIT), CONTRIBUTING, CODE_OF_CONDUCT
 
-[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/entro314-labs/go-release-kit/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/entro314-labs/go-release-kit/releases/tag/v1.0.0
