@@ -20,10 +20,10 @@ on:
         required: false
         type: string
 
+# Nothing by default; each job asks for what it uses, so the verify job (which
+# only reads the release back) holds no write token and no OIDC identity.
 permissions:
-  contents: write
-  packages: write
-  id-token: write
+  contents: read
 
 env:
   GO_VERSION: "1.27.1"
@@ -32,6 +32,10 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # create the GitHub release and upload its assets
+      packages: write  # push the image to GHCR
+      id-token: write  # keyless cosign signing and npm --provenance
     # Mapped here, not on the steps that use it: `if: env.X != ''` is evaluated
     # before a step's own `env:` exists, so a step-level mapping never sees it.
     env:
@@ -46,12 +50,19 @@ jobs:
           # Without it a dispatch built the branch HEAD, and goreleaser refused the
           # untagged commit.
           ref: ${{ inputs.tag || github.ref }}
+          # Nothing here pushes to this repository: goreleaser publishes through the
+          # API with GITHUB_TOKEN and the tap tokens, and AUR over SSH with AUR_KEY.
+          # A persisted credential would only sit in .git/config for dist/ to leak.
+          persist-credentials: false
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: true
+          # No cache on a release: it would restore module and build caches written
+          # by other runs (any branch that ran CI), so a poisoned cache entry would
+          # end up compiled into signed release binaries.
+          cache: false
 
       - name: Run tests
         run: |
@@ -114,6 +125,9 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+          # Would switch on by itself if the project's package.json names npm as its
+          # packageManager; same reason as setup-go above.
+          package-manager-cache: false
 
       - name: Publish to npm
         if: env.NPM_TOKEN != ''
@@ -158,7 +172,10 @@ jobs:
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: true
+          # This job checks what users get from `go install`; a build cache from
+          # other runs would test that instead. (There is no checkout, so no go.sum
+          # to key a cache on either.)
+          cache: false
 
       - name: Verify GitHub release
         env:

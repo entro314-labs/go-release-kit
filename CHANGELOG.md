@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `Dockerfile.goreleaser` now builds on `gcr.io/distroless/static-debian13:nonroot` instead of `debian:trixie-slim`, matching the kit's `CGO_ENABLED=0` builds: 67 MiB down to 1.5 MiB, and no shell or package manager in the shipped image. The `git` package went with it — nothing in the kit needed it at run time. A tool that execs `git`/`ssh`, or anyone who wants a debug shell, has the `debian:trixie-slim` recipe in a comment at the top of the file. The `chmod +x` and `groupadd`/`useradd` layers are gone too: `COPY --chmod=0755` and a numeric `USER 65532:65532` (which is what Kubernetes `runAsNonRoot` and compose `user:` can actually verify) do the same work without a layer.
+- The Quick start copies only `ci.yml` and `release.yml` out of `.github/`; the kit's own `lint.yml` and `dependabot.yml` live there too and are not templates.
 
 ### Fixed
 
@@ -31,6 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - Every action in `ci.yml` and `release.yml` is pinned to a full commit SHA with its version as a comment, instead of a movable tag (`actions/checkout@v7`). A retagged or compromised upstream release can no longer run inside the release job, which holds the tap, winget, AUR and npm credentials and the OIDC identity cosign signs with. Dependabot reads the version comment and still proposes updates.
+- `release.yml` granted `contents`/`packages`/`id-token: write` to the whole workflow, so the verify job held a write token and an OIDC identity it never uses. The workflow default is now `contents: read` and only the `release` job gets the three write scopes.
+- Release builds no longer restore the Go module/build cache (`setup-go` `cache: false`, `setup-node` `package-manager-cache: false`): a tag build restored caches written by other branches' CI runs, so a poisoned entry could end up in signed binaries. The CI snapshot job is uncached for the same reason.
+- Every `actions/checkout` sets `persist-credentials: false`. Nothing in either workflow pushes with git (goreleaser publishes through the API and tap tokens, AUR over SSH), so the token left in `.git/config` only served to leak.
 
 ## [1.0.0] - 2026-08-24
 
