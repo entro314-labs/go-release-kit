@@ -338,8 +338,11 @@ dockers_v2:
 
     tags:
       - "{{ .Version }}"
+      # Floating major.minor (`:1.4`), for anyone who wants patch releases without
+      # also taking the next minor. Moves with each stable patch of that line.
       # Empty tags are dropped: a prerelease keeps its version tag and leaves
-      # `latest` pointing at the last stable image.
+      # `latest` and the major.minor tag pointing at the last stable image.
+      - "{{ if not .Prerelease }}{{ .Major }}.{{ .Minor }}{{ end }}"
       - "{{ if not .Prerelease }}latest{{ end }}"
       - "{{ .Version }}-amd64"
       - "{{ .Version }}-arm64"
