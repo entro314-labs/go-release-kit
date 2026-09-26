@@ -20,8 +20,9 @@ on:
         required: false
         type: string
 
-# Nothing by default; each job asks for what it uses, so the verify job (which
-# only reads the release back) holds no write token and no OIDC identity.
+# Read-only by default (the verify job needs that much for `gh release view`);
+# the release job asks for its write scopes itself, so verify holds no write
+# token and no OIDC identity.
 permissions:
   contents: read
 
@@ -32,8 +33,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    # GitHub's default is six hours. A normal run is well under half an hour; this
-    # only stops a hung QEMU build or registry push from holding the runner.
+    # GitHub's default is six hours. This is a cap, not an estimate: it stops a
+    # hung QEMU build or registry push from holding the runner that long.
     timeout-minutes: 60
     permissions:
       contents: write  # create the GitHub release and upload its assets
