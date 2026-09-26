@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The CI `docker` job and the `docker-build`/`docker-run` Makefile targets, which built a multi-stage `Dockerfile` the kit does not contain (only the runtime-only `Dockerfile.goreleaser` exists) and so failed on every run.
 
+### Security
+
+- Every action in `ci.yml` and `release.yml` is pinned to a full commit SHA with its version as a comment, instead of a movable tag (`actions/checkout@v7`). A retagged or compromised upstream release can no longer run inside the release job, which holds the tap, winget, AUR and npm credentials and the OIDC identity cosign signs with. Dependabot reads the version comment and still proposes updates.
+
 ## [1.0.0] - 2026-08-24
 
 ### Added
