@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `release.yml` built releases with Go 1.27.0 while `ci.yml` tested with 1.27.1; both now use 1.27.1.
 - Signing never worked in any mode: `signs` ran goreleaser's default `gpg` (no key on the runner), `docker_signs` looked for a `cosign.key` nothing provides, and both read `COSIGN_PWD` without a guard so every snapshot failed before signing began. Signing is now keyless cosign over the workflow's OIDC identity; `COSIGN_PWD` is gone, snapshot runs pass `--skip=sign`, and `SECURITY.md` shows the matching `verify-blob` command.
 - The macOS universal binary never built: the `universal_binaries` entry named no `ids`, so goreleaser looked for a build called `<name>-universal` and shipped two per-arch archives instead.
 - A prerelease tag (`v1.2.0-beta.1`) was published as stable everywhere but GitHub: `latest` on npm and GHCR, and a Homebrew/Scoop/Winget/AUR update. Those channels now skip prereleases and npm publishes under the channel's dist-tag.
