@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- The npm package shipped no macOS binary. goreleaser lists the universal binary as a `Binary` with goarch `all`, and `npm/prepare.mjs` only staged it for a `UniversalBinary` type it never sees, so `npm i -g` succeeded on a Mac and every run then exited with "does not ship a binary for darwin-arm64". It is staged as `darwin-x64` and `darwin-arm64` again.
+
+### Security
+
+- The templates install syft 1.52.0 and cosign 3.1.3 instead of the actions' defaults (1.42.3 and 3.0.6), which predate GHSA-mw2c-m758-9v5q and GHSA-fx35-mq7g-6g98.
+
 ## [1.1.0] - 2026-09-26
 
 ### Added

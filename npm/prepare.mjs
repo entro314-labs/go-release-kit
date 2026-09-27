@@ -38,8 +38,9 @@ for (const artifact of artifacts) {
 
   // A universal macOS binary carries both architectures, and `replace: true` means the
   // per-arch ones are gone. It has to be staged under each name the launcher may ask for.
+  // goreleaser lists it as a Binary with goarch "all", not under a type of its own.
   const archs =
-    artifact.type === 'UniversalBinary' ? ['x64', 'arm64'] : [ARCHS[artifact.goarch]].filter(Boolean)
+    artifact.goarch === 'all' ? ['x64', 'arm64'] : [ARCHS[artifact.goarch]].filter(Boolean)
 
   for (const arch of archs) {
     const target = join(staging, `${platform}-${arch}${platform === 'win32' ? '.exe' : ''}`)
