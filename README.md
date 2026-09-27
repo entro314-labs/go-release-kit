@@ -125,7 +125,7 @@ and the version is read from the latest tag. The very first release therefore ha
 to count from: pass it explicitly once (`release-kit 0.1.0`), and `make tag` infers every
 release after it.
 
-`make tag` stops at the pushed tag on purpose. Everything after it — building six
+`make tag` stops at the pushed tag on purpose. Everything after it — building eight
 distribution channels, Cosign signing, the GitHub release — is this pipeline's job, which is
 why `steps` ends at `push` and `publish` is `null`.
 

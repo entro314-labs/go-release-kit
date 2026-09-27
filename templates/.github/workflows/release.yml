@@ -17,7 +17,7 @@ on:
     inputs:
       tag:
         description: 'Tag to release (e.g., v1.0.0)'
-        required: false
+        required: true
         type: string
 
 # Read-only by default (the verify job needs that much for `gh release view`);

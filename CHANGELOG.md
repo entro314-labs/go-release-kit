@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The release template's dispatch `tag` input is required: dispatching without one built the branch HEAD, which goreleaser refuses as untagged.
+- `make clean` (and so `make all` / `make build-all`, which run it first) deleted `default.pgo`, the committed profile `make build-pgo` reads. It is kept now. `make help` no longer lists the removed `docker-build` target.
 - The README promised per-arch Docker tags `:1.4.2-amd64`/`-arm64`. dockers_v2 builds one multi-platform image and applies every tag to it, so both were the same two-arch index as `:1.4.2`; the tags and the claim are removed.
 - Prerelease `.deb`/`.rpm` files were named with nfpm's `~` (`demo_1.2.0~beta.1_amd64.deb`); GitHub stores `~` as `.`, so `checksums.txt` named files the release did not have and `sha256sum -c` failed for them. The filename now uses `.`; the package header keeps the tilde.
 - The README's placeholder one-liner substituted `__MAIN_PACKAGE_SUFFIX__` without its leading slash, contrary to the table above it, so the verify job ran `go install github.com/acme/democmd/git-herd@…` and failed on the first release.

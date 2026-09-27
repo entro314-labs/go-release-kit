@@ -209,6 +209,8 @@ tag:
 # =============================================================================
 # Cleanup
 # =============================================================================
+# $(PGO_PROFILE) stays: it is a committed input to build-pgo (Go's convention), not an
+# artifact, and `all` / `build-all` run clean first.
 .PHONY: clean
 clean:
 	@echo "Cleaning build artifacts..."
@@ -216,7 +218,7 @@ clean:
 	rm -f $(BINARY_NAME) $(BINARY_NAME)-*
 	rm -rf $(DIST_DIR) $(BUILD_DIR)
 	rm -f coverage.out coverage.html
-	rm -f *.prof $(PGO_PROFILE)
+	rm -f *.prof
 
 # =============================================================================
 # Tools installation
@@ -275,7 +277,6 @@ help:
 	@echo "  release          Create release with GoReleaser"
 	@echo ""
 	@echo "Other:"
-	@echo "  docker-build     Build Docker image"
 	@echo "  clean            Clean artifacts"
 	@echo "  setup            Setup dev environment"
 	@echo "  info             Show build info"
