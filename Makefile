@@ -224,7 +224,7 @@ clean:
 .PHONY: install-tools
 install-tools:
 	@echo "Installing development tools..."
-	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install github.com/goreleaser/goreleaser/v2@latest
 	@echo "Development tools installed"
