@@ -8,7 +8,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
 - **8 distribution channels**: GitHub Releases, Homebrew Cask, Scoop, Winget, AUR, npm, Docker (GHCR), nfpms (deb/rpm/apk)
 - **Cosign signing**: checksums, all artifacts, Docker images
 - **SBOM**: SPDX JSON for archives and source
-- **Docker tags**: `:1.4.2`, the floating `:1.4` and `:latest`, plus per-arch `:1.4.2-amd64`/`-arm64`; a prerelease gets only its own version tags and never moves `:1.4` or `:latest`
+- **Docker tags**: `:1.4.2`, the floating `:1.4` and `:latest`, each a multi-platform (amd64 + arm64) image; a prerelease gets only its own version tag and never moves `:1.4` or `:latest`
 - **Conditional secret guards**: Homebrew/Scoop/Winget/AUR/npm gracefully skip if secrets are absent
 - **Post-release verification**: `go install` + `docker pull` after release
 - **Snapshot builds in CI**: every PR validates the full release pipeline
