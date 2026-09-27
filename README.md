@@ -67,7 +67,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
 
    ```sh
    grep -rl '__PROJECT_NAME__\|__ORG__\|__MAIN_PACKAGE' --exclude-dir=.git . | xargs perl -pi -e \
-     's/__PROJECT_NAME__/git-herd/g; s/__PROJECT_DESCRIPTION__/A concurrent Git repository management tool/g; s/__MAIN_PACKAGE_SUFFIX__/cmd\/git-herd/g; s/__MAIN_PACKAGE__/.\/cmd\/git-herd/g; s/__ORG__/entro314-labs/g'
+     's/__PROJECT_NAME__/git-herd/g; s/__PROJECT_DESCRIPTION__/A concurrent Git repository management tool/g; s/__MAIN_PACKAGE_SUFFIX__/\/cmd\/git-herd/g; s/__MAIN_PACKAGE__/.\/cmd\/git-herd/g; s/__ORG__/entro314-labs/g'
    ```
 
 3. Add the version variables to your main package (see below).

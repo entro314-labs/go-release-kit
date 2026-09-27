@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The README's placeholder one-liner substituted `__MAIN_PACKAGE_SUFFIX__` without its leading slash, contrary to the table above it, so the verify job ran `go install github.com/acme/democmd/git-herd@…` and failed on the first release.
 - The npm package shipped no macOS binary. goreleaser lists the universal binary as a `Binary` with goarch `all`, and `npm/prepare.mjs` only staged it for a `UniversalBinary` type it never sees, so `npm i -g` succeeded on a Mac and every run then exited with "does not ship a binary for darwin-arm64". It is staged as `darwin-x64` and `darwin-arm64` again.
 
 ### Security
