@@ -313,7 +313,10 @@ aurs:
 nfpms:
   - id: packages
     package_name: __PROJECT_NAME__
-    file_name_template: "{{ .ConventionalFileName }}"
+    # A prerelease's conventional name carries a '~' (1.2.0~beta.1), which GitHub
+    # stores as '.', so checksums.txt would name a file the release does not have.
+    # The package header keeps the tilde; only the filename changes.
+    file_name_template: '{{ replace .ConventionalFileName "~" "." }}'
     homepage: https://github.com/__ORG__/__PROJECT_NAME__
     description: "__PROJECT_DESCRIPTION__"
     maintainer: "__ORG__"
@@ -344,8 +347,6 @@ dockers_v2:
       # `latest` and the major.minor tag pointing at the last stable image.
       - "{{ if not .Prerelease }}{{ .Major }}.{{ .Minor }}{{ end }}"
       - "{{ if not .Prerelease }}latest{{ end }}"
-      - "{{ .Version }}-amd64"
-      - "{{ .Version }}-arm64"
 
     platforms:
       - linux/amd64
