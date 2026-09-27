@@ -32,7 +32,7 @@ mkdirSync(staging, { recursive: true })
 
 let staged = 0
 for (const artifact of artifacts) {
-  if (artifact.type !== 'Binary' && artifact.type !== 'UniversalBinary') continue
+  if (artifact.type !== 'Binary') continue
   const platform = PLATFORMS[artifact.goos]
   if (!platform) continue
 
