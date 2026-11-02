@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The npm publish authenticates over trusted publishing: npm exchanges the release job's OIDC token for a short-lived publish token, and no npm credential is stored in the repository. `NPM_TOKEN` is now the fallback, used when the exchange fails — a new package's first version, or a package with no trusted publisher registered — and it stops working in January 2027, when npm removes direct publishing with granular tokens. The channel is opted into by having `npm/` in the checkout rather than by setting the secret. The step runs Node 24 on `actions/setup-node` v7, since trusted publishing needs npm 11.5.1, and upgrades npm in place if the bundled one is older. Registering the publisher is a one-time step on npmjs.com; the README's "First release" section walks through it.
 
+### Removed
+
+- The `release` Makefile target, which ran `goreleaser release --clean` from a developer machine. It bypassed the tag-triggered pipeline, could not sign (keyless cosign needs the workflow's OIDC identity), and after `make tag` raced the workflow the pushed tag had already started. `make tag` is the way to cut a release; `make release-snapshot` is the local dry run.
+
 ### Fixed
 
 - The release template's dispatch `tag` input is required: dispatching without one built the branch HEAD, which goreleaser refuses as untagged.

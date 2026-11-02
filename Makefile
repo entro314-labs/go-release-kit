@@ -194,10 +194,6 @@ release-check:
 release-snapshot:
 	goreleaser release --snapshot --clean --skip=sign
 
-.PHONY: release
-release:
-	goreleaser release --clean
-
 # Cut the next version: infer the bump from the conventional commits since the last tag,
 # update CHANGELOG.md, commit, tag and push. Pushing the tag is what triggers
 # .github/workflows/release.yml (copied from templates/.github/), which runs goreleaser.
@@ -274,7 +270,6 @@ help:
 	@echo "Release:"
 	@echo "  release-check    Validate GoReleaser config"
 	@echo "  release-snapshot Build snapshot release"
-	@echo "  release          Create release with GoReleaser"
 	@echo ""
 	@echo "Other:"
 	@echo "  clean            Clean artifacts"
