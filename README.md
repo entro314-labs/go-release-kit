@@ -56,7 +56,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
 
    | Placeholder | Description | Example |
    |---|---|---|
-   | `__PROJECT_NAME__` | Binary/project name | `git-herd` |
+   | `__PROJECT_NAME__` | Binary/project name — must also be the GitHub repository name: goreleaser publishes to `__ORG__/__PROJECT_NAME__`, and the Homebrew, Scoop and AUR recipes download from it | `git-herd` |
    | `__PROJECT_DESCRIPTION__` | One-line description | `A concurrent Git repository management tool` |
    | `__MAIN_PACKAGE__` | Go main package path | `.` or `./cmd/git-herd` |
    | `__MAIN_PACKAGE_SUFFIX__` | Path after module for `go install`, with its leading slash | `` (empty for root) or `/cmd/git-herd` |
