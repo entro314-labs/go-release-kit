@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-02
+
 ### Changed
 
 - The npm publish authenticates over trusted publishing: npm exchanges the release job's OIDC token for a short-lived publish token, and no npm credential is stored in the repository. `NPM_TOKEN` is now the fallback, used when the exchange fails — a new package's first version, or a package with no trusted publisher registered — and it stops working in January 2027, when npm removes direct publishing with granular tokens. The channel is opted into by having `npm/` in the checkout rather than by setting the secret. The step runs Node 24 on `actions/setup-node` v7, since trusted publishing needs npm 11.5.1, and upgrades npm in place if the bundled one is older. Registering the publisher is a one-time step on npmjs.com; the README's "First release" section walks through it.
@@ -79,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - golangci-lint and yamllint configs, runtime-only GoReleaser Dockerfile, security policy template
 - Project documentation: README, LICENSE (MIT), CONTRIBUTING, CODE_OF_CONDUCT
 
-[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/entro314-labs/go-release-kit/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/entro314-labs/go-release-kit/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/entro314-labs/go-release-kit/releases/tag/v1.0.0
