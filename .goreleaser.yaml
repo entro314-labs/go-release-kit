@@ -400,12 +400,14 @@ signs:
     # `all` already covers checksums.txt; a second entry for it produced the same
     # checksums.txt.sig twice.
     artifacts: all
-    certificate: "${artifact}.pem"
-    signature: "${artifact}.sig"
+    # cosign 3 writes a Sigstore bundle (signature + certificate + Rekor entry
+    # in one file) and refuses the old --output-signature/--output-certificate
+    # pair, so each artifact gets a <file>.sigstore.json; see SECURITY.md for
+    # the matching verify-blob --bundle command.
+    signature: "${artifact}.sigstore.json"
     args:
       - sign-blob
-      - "--output-certificate=${certificate}"
-      - "--output-signature=${signature}"
+      - "--bundle=${signature}"
       - "${artifact}"
       - --yes
 

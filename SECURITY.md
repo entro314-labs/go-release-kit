@@ -61,7 +61,7 @@ sha256sum -c checksums.txt
 
 # Verify the keyless Cosign signature: the certificate names the workflow that signed
 cosign verify-blob \
-  --certificate checksums.txt.pem --signature checksums.txt.sig \
+  --bundle checksums.txt.sigstore.json \
   --certificate-identity-regexp '^https://github.com/__ORG__/__PROJECT_NAME__/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
   checksums.txt
