@@ -39,11 +39,7 @@ jobs:
     permissions:
       contents: write  # create the GitHub release and upload its assets
       packages: write  # push the image to GHCR
-      id-token: write  # keyless cosign signing and npm --provenance
-    # Mapped here, not on the steps that use it: `if: env.X != ''` is evaluated
-    # before a step's own `env:` exists, so a step-level mapping never sees it.
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      id-token: write  # keyless cosign signing, npm trusted publishing and --provenance
 
     steps:
       - name: Checkout
@@ -123,28 +119,51 @@ jobs:
           AUR_KEY: ${{ secrets.AUR_KEY }}
 
       # ---------------------------------------------------------------------
-      # npm distribution - conditional on NPM_TOKEN
+      # npm distribution - runs when npm/ is in the checkout
       #
       # Runs here rather than in its own job because it needs dist/, which only
-      # exists in this runner. Skips with a warning when the secret is absent,
-      # like every other optional channel.
+      # exists in this runner. The channel is opted into by copying npm/ (the
+      # Quick start does) and dropped by deleting it; package.json.tmpl is the
+      # file the package is generated from, so it is the one looked for.
+      #
+      # Authentication is trusted publishing: npm exchanges this job's OIDC
+      # token (the id-token: write above) for a short-lived publish token, once
+      # the package's settings on npmjs.com name this repository and release.yml
+      # as a trusted publisher. NPM_TOKEN is the fallback: npm attempts the
+      # exchange first in every Actions run and uses the token only when the
+      # exchange fails.
       # ---------------------------------------------------------------------
       - name: Set up Node
-        if: env.NPM_TOKEN != ''
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        if: hashFiles('npm/package.json.tmpl') != ''
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version: 24
+          # Writes an .npmrc whose token is read from NODE_AUTH_TOKEN. The token
+          # path below sets that variable; the trusted-publishing path never does,
+          # and npm tolerates the unresolved reference.
           registry-url: https://registry.npmjs.org
           # Would switch on by itself if the project's package.json names npm as its
           # packageManager; same reason as setup-go above.
           package-manager-cache: false
 
       - name: Publish to npm
-        if: env.NPM_TOKEN != ''
+        if: hashFiles('npm/package.json.tmpl') != ''
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           TAG: ${{ inputs.tag || github.ref_name }}
+          # The oldest npm that can exchange the OIDC token. Node 24.0.0 shipped
+          # 11.3.0; a current 24.x bundles a newer one, but that is checked, not assumed.
+          NPM_OIDC_MIN: "11.5.1"
         run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            export NODE_AUTH_TOKEN="$NPM_TOKEN"
+          else
+            npm_can_oidc() {
+              [ "$(printf '%s\n' "$NPM_OIDC_MIN" "$(npm --version)" | sort -V | head -n1)" = "$NPM_OIDC_MIN" ]
+            }
+            npm_can_oidc || npm install -g npm@latest
+            npm_can_oidc || { echo "::error::npm $(npm --version) cannot publish with trusted publishing, which needs npm $NPM_OIDC_MIN or later"; exit 1; }
+          fi
           node npm/prepare.mjs "$TAG"
           cd npm
           # A prerelease publishes under its channel (1.2.0-beta.1 -> beta), never
@@ -156,11 +175,14 @@ jobs:
           esac
           # --provenance ties the tarball to this workflow run. It needs the
           # id-token: write permission declared on this job.
-          npm publish --provenance --access public --tag "$DIST_TAG"
+          if ! npm publish --provenance --access public --tag "$DIST_TAG"; then
+            [ -n "$NPM_TOKEN" ] || echo "::error::npm publish failed without NPM_TOKEN - is this repository and release.yml registered as the package's trusted publisher on npmjs.com, with npm publish allowed?"
+            exit 1
+          fi
 
       - name: Note the skipped npm publish
-        if: env.NPM_TOKEN == ''
-        run: echo "::warning::NPM_TOKEN is not set - skipping the npm publish"
+        if: hashFiles('npm/package.json.tmpl') == ''
+        run: echo "::notice::npm/ is not in this checkout - skipping the npm publish"
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -9,7 +9,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
 - **Cosign signing**: checksums, all artifacts, Docker images
 - **SBOM**: SPDX JSON for archives and source
 - **Docker tags**: `:1.4.2`, the floating `:1.4` and `:latest`, each a multi-platform (amd64 + arm64) image; a prerelease gets only its own version tag and never moves `:1.4` or `:latest`
-- **Conditional secret guards**: Homebrew/Scoop/Winget/AUR/npm gracefully skip if secrets are absent
+- **Conditional secret guards**: Homebrew/Scoop/Winget/AUR gracefully skip if secrets are absent; npm needs none, it publishes over trusted publishing
 - **Post-release verification**: `go install` + `docker pull` after release
 - **Snapshot builds in CI**: every PR validates the full release pipeline
 - **Conventional commits**: enforced by pre-commit hook, drives changelog groups
@@ -103,7 +103,7 @@ func buildVersion() string {
 | `GITHUB_TOKEN` | Auto | GitHub release, GHCR push |
 | `HOMEBREW_TAP_TOKEN` | Optional | PAT for homebrew-tap repo write |
 | `SCOOP_TAP_TOKEN` | Optional | PAT for scoop-bucket repo write |
-| `NPM_TOKEN` | Optional | npm **automation** token, for `npm i -g` distribution |
+| `NPM_TOKEN` | Optional | Fallback for the npm channel, which otherwise publishes over trusted publishing (see [First release](#first-release)): a granular token with publish access, which npm stops honouring for direct publishes in January 2027 |
 | `WINGET_TOKEN` | Optional | PAT for winget-pkgs fork/PR |
 | `AUR_KEY` | Optional | SSH private key for AUR git push |
 | `CODECOV_TOKEN` | Optional | Coverage upload |
@@ -128,6 +128,18 @@ release after it.
 `make tag` stops at the pushed tag on purpose. Everything after it — building eight
 distribution channels, Cosign signing, the GitHub release — is this pipeline's job, which is
 why `steps` ends at `push` and `publish` is `null`.
+
+### First release
+
+- **npm**: the publish authenticates over trusted publishing, so the package's settings on
+  npmjs.com have to name this workflow: Packages → the package → Settings → Trusted publishing →
+  GitHub Actions, with your organization or user, the repository, `release.yml` as the workflow
+  filename, and `npm publish` ticked under allowed actions (a configuration made since September
+  2026 allows only `npm stage publish` by default). Those settings belong to a package that already
+  exists, so a new package's first version is published with `NPM_TOKEN`, which the workflow falls
+  back to whenever the OIDC exchange fails; register the publisher after it and delete the token.
+  A new configuration expires 48 hours after it is created unless it publishes once in that time.
+  The `id-token: write` the exchange needs is already granted to the release job.
 
 ### Who writes the release notes
 
