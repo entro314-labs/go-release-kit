@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-11-02
+
 ### Fixed
 
 - A prerelease tried to publish to Homebrew, Scoop and Winget and failed the release with "401 Bad credentials" when their tokens were unset. The channel gates were `{{ or .IsSnapshot .Prerelease (eq .Env.X "") }}`, and Go's `or` returns its first truthy argument, so on `v1.2.0-rc.1` the template rendered `rc.1` — which goreleaser does not read as "skip". The gates now render `true`/`auto` (and `true`/`false` for the AUR), so a prerelease skips those channels as 1.1.0 promised. Found by the first live run.
@@ -91,7 +93,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - golangci-lint and yamllint configs, runtime-only GoReleaser Dockerfile, security policy template
 - Project documentation: README, LICENSE (MIT), CONTRIBUTING, CODE_OF_CONDUCT
 
-[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/entro314-labs/go-release-kit/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/entro314-labs/go-release-kit/compare/v1.0.0...v1.1.0
