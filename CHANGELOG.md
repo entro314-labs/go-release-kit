@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The npm publish step no longer runs `npm install -g npm@latest` when the bundled npm is too old for trusted publishing; it refuses with the version it found and what to do (a Node 24.x from 24.5 on bundles npm 11.5.1+). An unpinned install inside the release job is what zizmor's `adhoc-packages` audit flags, and the kit's own lint was red for it.
+
 ## [1.2.2] - 2026-11-02
 
 ### Fixed

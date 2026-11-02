@@ -161,8 +161,7 @@ jobs:
             npm_can_oidc() {
               [ "$(printf '%s\n' "$NPM_OIDC_MIN" "$(npm --version)" | sort -V | head -n1)" = "$NPM_OIDC_MIN" ]
             }
-            npm_can_oidc || npm install -g npm@latest
-            npm_can_oidc || { echo "::error::npm $(npm --version) cannot publish with trusted publishing, which needs npm $NPM_OIDC_MIN or later"; exit 1; }
+            npm_can_oidc || { echo "::error::npm $(npm --version) cannot publish with trusted publishing, which needs npm $NPM_OIDC_MIN or later - point node-version at a 24.x that bundles it (24.5+), or set NPM_TOKEN"; exit 1; }
           fi
           node npm/prepare.mjs "$TAG"
           cd npm
