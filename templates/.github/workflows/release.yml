@@ -64,11 +64,11 @@ jobs:
           # end up compiled into signed release binaries.
           cache: false
 
-      - name: Run tests
-        run: |
-          go mod download
-          go mod verify
-          go test -v ./...
+      # goreleaser's before hooks run `go mod verify` and `go test ./...`, so neither
+      # is repeated here. The download stays: `go mod verify` only checks what is
+      # already in the module cache, and this job starts with an empty one.
+      - name: Download modules
+        run: go mod download
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0

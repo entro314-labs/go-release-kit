@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The npm publish authenticates over trusted publishing: npm exchanges the release job's OIDC token for a short-lived publish token, and no npm credential is stored in the repository. `NPM_TOKEN` is now the fallback, used when the exchange fails — a new package's first version, or a package with no trusted publisher registered — and it stops working in January 2027, when npm removes direct publishing with granular tokens. The channel is opted into by having `npm/` in the checkout rather than by setting the secret. The step runs Node 24 on `actions/setup-node` v7, since trusted publishing needs npm 11.5.1, and upgrades npm in place if the bundled one is older. Registering the publisher is a one-time step on npmjs.com; the README's "First release" section walks through it.
+- The release workflow ran the test suite twice: once in its own step and once in goreleaser's `before` hook. The workflow step is gone and the hook is the gate, since it also guards `make release-snapshot`; the step's `go mod download` stays, because `go mod verify` only checks modules already in the cache and the release runner starts with none.
 
 ### Removed
 
