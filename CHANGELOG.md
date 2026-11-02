@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.3] - 2026-11-02
+
 ### Changed
 
 - The npm publish step no longer runs `npm install -g npm@latest` when the bundled npm is too old for trusted publishing; it refuses with the version it found and what to do (a Node 24.x from 24.5 on bundles npm 11.5.1+). An unpinned install inside the release job is what zizmor's `adhoc-packages` audit flags, and the kit's own lint was red for it.
@@ -97,7 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - golangci-lint and yamllint configs, runtime-only GoReleaser Dockerfile, security policy template
 - Project documentation: README, LICENSE (MIT), CONTRIBUTING, CODE_OF_CONDUCT
 
-[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.3...HEAD
+[1.2.3]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/entro314-labs/go-release-kit/compare/v1.1.0...v1.2.0
