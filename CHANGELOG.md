@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A project's first release failed in the verify job with a bare `docker pull` error: a new GHCR package is private until it is made public, whatever the repository is, and the job pulls anonymously on purpose. The error now says so, and the README's "First release" section has the one-time step.
 - The release template's dispatch `tag` input is required: dispatching without one built the branch HEAD, which goreleaser refuses as untagged.
 - `make clean` (and so `make all`, which runs it first) deleted `default.pgo`, the committed profile `make build-pgo` reads. It is kept now. `make help` no longer lists the removed `docker-build` target.
 - The README promised per-arch Docker tags `:1.4.2-amd64`/`-arm64`. dockers_v2 builds one multi-platform image and applies every tag to it, so both were the same two-arch index as `:1.4.2`; the tags and the claim are removed.

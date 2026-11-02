@@ -235,5 +235,7 @@ jobs:
           VERSION="${TAG#v}"
           # GHCR image names are lowercase; github.repository keeps the org's case.
           IMAGE="ghcr.io/${REPO,,}:${VERSION}"
-          docker pull "$IMAGE"
+          # Anonymous on purpose: this checks what users get. A new GHCR package is
+          # private until it is made public, so a project's first release fails here.
+          docker pull "$IMAGE" || { echo "::error::could not pull $IMAGE anonymously - a new GHCR package is private until it is made public (Package settings -> Change visibility, once); the release itself is published"; exit 1; }
           docker run --rm "$IMAGE" --version
