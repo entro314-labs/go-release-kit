@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-02
+
 ### Fixed
 
 - Every release failed at the signing step: cosign 3 (pinned since 1.2.0) refuses `--output-signature`/`--output-certificate` and requires `--bundle`. Each artifact is now signed into a Sigstore bundle, `<file>.sigstore.json`, which carries the signature, certificate and Rekor entry together; `SECURITY.md` shows the matching `cosign verify-blob --bundle` command. The separate `.sig` and `.pem` files are gone. Found by the first live run on go-release-kit 1.2.0.
@@ -85,7 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - golangci-lint and yamllint configs, runtime-only GoReleaser Dockerfile, security policy template
 - Project documentation: README, LICENSE (MIT), CONTRIBUTING, CODE_OF_CONDUCT
 
-[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/entro314-labs/go-release-kit/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/entro314-labs/go-release-kit/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/entro314-labs/go-release-kit/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/entro314-labs/go-release-kit/releases/tag/v1.0.0
