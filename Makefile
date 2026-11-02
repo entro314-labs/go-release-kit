@@ -1,5 +1,5 @@
 # __PROJECT_NAME__ Makefile
-# Go project Makefile with cross-platform builds, PGO support, and GoReleaser
+# Go project Makefile with PGO support and GoReleaser
 
 # =============================================================================
 # Variables
@@ -13,7 +13,6 @@ GO_VERSION := $(shell go version | cut -d' ' -f3)
 
 # Build configuration
 CGO_ENABLED ?= 0
-GOARM64 ?= v8.0,lse,crypto
 PGO_PROFILE := default.pgo
 
 # Linker flags
@@ -25,7 +24,6 @@ LDFLAGS := -s -w \
 
 # Output directories
 DIST_DIR := dist
-BUILD_DIR := build
 
 # =============================================================================
 # Default target
@@ -61,35 +59,6 @@ build-pgo:
 		echo "No $(PGO_PROFILE) found. Building without PGO..."; \
 		$(MAKE) build; \
 	fi
-
-# macOS universal binary (Intel + ARM64)
-.PHONY: build-universal
-build-universal:
-	@echo "Building universal binary (macOS only)..."
-	@mkdir -p $(BUILD_DIR)
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=$(CGO_ENABLED) \
-		go build -trimpath -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-amd64 $(MAIN_PACKAGE)
-	GOOS=darwin GOARCH=arm64 GOARM64=$(GOARM64) CGO_ENABLED=$(CGO_ENABLED) \
-		go build -trimpath -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-arm64 $(MAIN_PACKAGE)
-	lipo -create -output $(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-amd64 $(BUILD_DIR)/$(BINARY_NAME)-arm64
-	@echo "Universal binary: $$(lipo -info $(BINARY_NAME))"
-
-# =============================================================================
-# Cross-platform builds
-# =============================================================================
-.PHONY: build-all
-build-all: clean
-	@echo "Building for all platforms..."
-	@mkdir -p $(DIST_DIR)
-	@for pair in "darwin/amd64" "darwin/arm64" "linux/amd64" "linux/arm64" "windows/amd64"; do \
-		os=$${pair%%/*}; arch=$${pair##*/}; \
-		ext=""; [ "$$os" = "windows" ] && ext=".exe"; \
-		echo "  -> $$os/$$arch"; \
-		GOOS=$$os GOARCH=$$arch CGO_ENABLED=$(CGO_ENABLED) \
-			go build -trimpath -ldflags="$(LDFLAGS)" -o $(DIST_DIR)/$(BINARY_NAME)-$$os-$$arch$$ext $(MAIN_PACKAGE); \
-	done
-	@echo "Cross-platform builds complete:"
-	@ls -lh $(DIST_DIR)/
 
 # =============================================================================
 # Dependencies
@@ -206,13 +175,13 @@ tag:
 # Cleanup
 # =============================================================================
 # $(PGO_PROFILE) stays: it is a committed input to build-pgo (Go's convention), not an
-# artifact, and `all` / `build-all` run clean first.
+# artifact, and `all` runs clean first.
 .PHONY: clean
 clean:
 	@echo "Cleaning build artifacts..."
 	go clean
 	rm -f $(BINARY_NAME) $(BINARY_NAME)-*
-	rm -rf $(DIST_DIR) $(BUILD_DIR)
+	rm -rf $(DIST_DIR)
 	rm -f coverage.out coverage.html
 	rm -f *.prof
 
@@ -251,8 +220,6 @@ help:
 	@echo "  build            Build binary"
 	@echo "  build-dev        Build with race detection"
 	@echo "  build-pgo        Build with Profile-Guided Optimization"
-	@echo "  build-universal  Build macOS universal binary"
-	@echo "  build-all        Cross-platform builds"
 	@echo ""
 	@echo "Development:"
 	@echo "  deps             Download dependencies"

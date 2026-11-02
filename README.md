@@ -13,7 +13,6 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
 - **Post-release verification**: `go install` + `docker pull` after release
 - **Snapshot builds in CI**: every PR validates the full release pipeline
 - **Conventional commits**: enforced by pre-commit hook, drives changelog groups
-- **GOARM64 optimizations**: LSE atomics + hardware crypto in Makefile
 - **PGO infrastructure**: ready for profile-guided optimization
 - **Version embedding**: 4 ldflags (version, commit, date, builtBy) with clean defaults
 
@@ -26,7 +25,7 @@ A drop-in release pipeline for Go CLI projects: GoReleaser v2, eight distributio
 | `templates/.github/workflows/ci.yml` | CI: test, lint, security, build, goreleaser check |
 | `templates/.github/workflows/release.yml` | Release: tag-triggered with Cosign signing + post-release verify |
 | `.github/workflows/lint.yml`, `.github/dependabot.yml` | The kit's own CI, not templates: actionlint + zizmor over the templates, weekly action-pin updates |
-| `Makefile` | Local dev: build, test, lint, release, PGO, universal binary |
+| `Makefile` | Local dev: build, test, lint, release, PGO |
 | `.pre-commit-config.yaml` | Pre-commit hooks + conventional commit enforcement |
 | `.golangci.yml` | Linter config (errcheck, govet, staticcheck, unused) |
 | `.yamllint.yaml` | YAML lint rules |
