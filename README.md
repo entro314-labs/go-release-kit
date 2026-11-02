@@ -130,10 +130,12 @@ why `steps` ends at `push` and `publish` is `null`.
 
 ### First release
 
-- **GHCR**: a new package is private, whatever the repository is, so the verify job's anonymous
-  `docker pull` fails on a project's first release after everything else has published. Make it
-  public once — the package's page → Package settings → Danger Zone → Change visibility → Public
-  (it cannot be made private again) — and re-run the failed job.
+- **GHCR**: a package first pushed by this workflow from a public repository is linked to it and
+  comes out public (seen on the first live run). One pushed from a private repository, or
+  first created with a PAT, starts private, so the verify job's anonymous `docker pull` fails
+  after everything else has published. Make it public once — the package's page → Package
+  settings → Danger Zone → Change visibility → Public (it cannot be made private again) — and
+  re-run the failed job.
 - **npm**: the publish authenticates over trusted publishing, so the package's settings on
   npmjs.com have to name this workflow: Packages → the package → Settings → Trusted publishing →
   GitHub Actions, with your organization or user, the repository, `release.yml` as the workflow

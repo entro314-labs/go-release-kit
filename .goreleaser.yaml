@@ -205,8 +205,11 @@ homebrew_casks:
     homepage: https://github.com/__ORG__/__PROJECT_NAME__
     description: "__PROJECT_DESCRIPTION__"
     license: MIT
-    # A prerelease must not become what `brew install` gives everyone.
-    skip_upload: '{{ or .IsSnapshot .Prerelease (eq .Env.HOMEBREW_TAP_TOKEN "") }}'
+    # A prerelease must not become what `brew install` gives everyone: `auto`
+    # skips prereleases. (`or … .Prerelease …` is wrong here — Go's `or`
+    # returns the first truthy value, so a prerelease rendered "rc.1", which
+    # goreleaser read as "publish" and did, with no token.)
+    skip_upload: '{{ if or .IsSnapshot (eq .Env.HOMEBREW_TAP_TOKEN "") }}true{{ else }}auto{{ end }}'
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
@@ -242,7 +245,7 @@ scoops:
     homepage: https://github.com/__ORG__/__PROJECT_NAME__
     description: "__PROJECT_DESCRIPTION__"
     license: MIT
-    skip_upload: '{{ or .IsSnapshot .Prerelease (eq .Env.SCOOP_TAP_TOKEN "") }}'
+    skip_upload: '{{ if or .IsSnapshot (eq .Env.SCOOP_TAP_TOKEN "") }}true{{ else }}auto{{ end }}'
     commit_author:
       name: goreleaserbot
       email: bot@goreleaser.com
@@ -264,7 +267,7 @@ winget:
     homepage: https://github.com/__ORG__/__PROJECT_NAME__
     license: MIT
     license_url: https://github.com/__ORG__/__PROJECT_NAME__/blob/main/LICENSE
-    skip_upload: '{{ or .IsSnapshot .Prerelease (eq .Env.WINGET_TOKEN "") }}'
+    skip_upload: '{{ if or .IsSnapshot (eq .Env.WINGET_TOKEN "") }}true{{ else }}auto{{ end }}'
     repository:
       owner: __ORG__
       name: winget-pkgs
@@ -293,7 +296,7 @@ aurs:
     maintainers:
       - "__ORG__"
     license: MIT
-    disable: '{{ or .IsSnapshot .Prerelease (eq .Env.AUR_KEY "") }}'
+    disable: '{{ or .IsSnapshot (ne .Prerelease "") (eq .Env.AUR_KEY "") }}'
     private_key: "{{ .Env.AUR_KEY }}"
     git_url: "ssh://aur@aur.archlinux.org/__PROJECT_NAME__-bin.git"
     provides:
